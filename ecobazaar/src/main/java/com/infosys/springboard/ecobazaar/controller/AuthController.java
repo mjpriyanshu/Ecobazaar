@@ -6,6 +6,9 @@ import com.infosys.springboard.ecobazaar.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -32,10 +35,24 @@ public class AuthController {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
         // Set default role to USER if not provided
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("USER");
         }
+        
+        // Set default eco score
+        if (user.getEcoScore() == null) {
+            user.setEcoScore(0);
+        }
+        
+        // Sellers need admin verification, users are auto-verified
+        if ("SELLER".equalsIgnoreCase(user.getRole())) {
+            user.setVerified(false);
+        } else {
+            user.setVerified(true);
+        }
+        
         userRepository.save(user);
 
         return "Signup successful";
@@ -43,7 +60,7 @@ public class AuthController {
 
     // LOGIN
     @PostMapping("/login")
-    public String login(@RequestBody User request) {
+    public Map<String, Object> login(@RequestBody User request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -52,6 +69,16 @@ public class AuthController {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("email", user.getEmail());
+        response.put("name", user.getName() != null ? user.getName() : "User");
+        response.put("role", user.getRole());
+        response.put("ecoScore", user.getEcoScore());
+        response.put("verified", user.getVerified());
+        
+        return response;
     }
 }
