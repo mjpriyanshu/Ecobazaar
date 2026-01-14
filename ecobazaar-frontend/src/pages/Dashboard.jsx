@@ -4,12 +4,14 @@ import { ShoppingCart, Leaf, User, LogOut } from 'lucide-react'
 
 export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('')
+  const [userName, setUserName] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     const email = localStorage.getItem('userEmail')
+    const name = localStorage.getItem('userName')
     
     if (!token || !email) {
       navigate('/login')
@@ -17,16 +19,27 @@ export default function Dashboard() {
     }
     
     setUserEmail(email)
+    setUserName(name || email)
   }, [navigate])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('userEmail')
+    localStorage.removeItem('userName')
+    localStorage.removeItem('userRole')
+    localStorage.removeItem('userEcoScore')
+    localStorage.removeItem('userVerified')
     navigate('/')
   }
 
   const getUserInitial = () => {
-    return userEmail ? userEmail.charAt(0).toUpperCase() : 'U'
+    if (userName && userName.length > 0 && userName !== userEmail) {
+      return userName.charAt(0).toUpperCase()
+    }
+    if (userEmail && userEmail.length > 0) {
+      return userEmail.charAt(0).toUpperCase()
+    }
+    return 'U'
   }
 
   const products = [
@@ -79,7 +92,7 @@ export default function Dashboard() {
               <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
                 {getUserInitial()}
               </div>
-              <span className="text-gray-700 font-medium">{userEmail}</span>
+              <span className="text-gray-700 font-medium">{userName || userEmail}</span>
             </button>
 
             {/* Dropdown Menu */}

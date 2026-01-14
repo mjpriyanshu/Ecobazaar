@@ -40,9 +40,13 @@ export default function Login() {
         throw new Error('Login failed')
       }
 
-      const token = await response.text()
-      localStorage.setItem('token', token)
-      localStorage.setItem('userEmail', email)
+      const data = await response.json()
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('userEmail', data.email)
+      localStorage.setItem('userName', data.name)
+      localStorage.setItem('userRole', data.role)
+      localStorage.setItem('userEcoScore', data.ecoScore)
+      localStorage.setItem('userVerified', data.verified)
       
       navigate('/dashboard')
     } catch (err) {

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Leaf, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Leaf, Mail, Lock, Eye, EyeOff, User, Briefcase } from 'lucide-react'
 
 export default function SignUp() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState('USER')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
@@ -13,8 +15,13 @@ export default function SignUp() {
   const navigate = useNavigate()
 
   const validateForm = () => {
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields')
+      return false
+    }
+
+    if (name.trim().length < 2) {
+      setError('Name must be at least 2 characters long')
       return false
     }
 
@@ -52,7 +59,7 @@ export default function SignUp() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password, role }),
       })
 
       if (!response.ok) {
@@ -105,6 +112,23 @@ export default function SignUp() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Name Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your Full Name"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                  />
+                </div>
+              </div>
+
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -120,6 +144,29 @@ export default function SignUp() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                   />
                 </div>
+              </div>
+
+              {/* Account Type Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Account Type
+                </label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition appearance-none bg-white"
+                  >
+                    <option value="USER">Buyer</option>
+                    <option value="SELLER">Seller</option>
+                  </select>
+                </div>
+                {role === 'SELLER' && (
+                  <p className="text-sm text-amber-600 mt-2">
+                    Note: Seller accounts require admin verification before you can list products.
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}
