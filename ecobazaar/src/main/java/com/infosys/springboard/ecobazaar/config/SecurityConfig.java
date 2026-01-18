@@ -3,6 +3,7 @@ package com.infosys.springboard.ecobazaar.config;
 import com.infosys.springboard.ecobazaar.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,7 +30,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints - no auth required
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/approved").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/category/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/filter/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/eco-certified").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/eco-sorted").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/{id}").permitAll()
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
