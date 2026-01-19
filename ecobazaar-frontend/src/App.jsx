@@ -4,6 +4,10 @@ import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import Products from './pages/Products'
+import SellerDashboard from './features/seller/SellerDashboard'
+import ProductForm from './features/seller/ProductForm'
+import AdminDashboard from './features/admin/AdminDashboard'
 import './App.css'
 
 function App() {
@@ -15,6 +19,11 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/product/new" element={<ProductForm />} />
+        <Route path="/seller/product/edit/:id" element={<ProductForm />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
   )

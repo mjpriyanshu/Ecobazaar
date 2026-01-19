@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Leaf, Mail, User, Shield, ArrowLeft, Award, Edit2, Save, CheckCircle, XCircle } from 'lucide-react'
+import Navbar from '../components/Navbar'
 
 export default function Profile() {
   const [userEmail, setUserEmail] = useState('')
@@ -133,21 +134,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-linear-to-b from-green-50 to-white">
       {/* Navigation */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-green-600">
-            <Leaf size={32} />
-            EcoBazaar
-          </Link>
-          <Link 
-            to="/dashboard"
-            className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition"
-          >
-            <ArrowLeft size={20} />
-            Back to Dashboard
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Profile Content */}
       <div className="max-w-4xl mx-auto px-4 py-12">

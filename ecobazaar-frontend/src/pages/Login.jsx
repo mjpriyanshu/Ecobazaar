@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Leaf, Mail, Lock } from 'lucide-react'
+import { STORAGE_KEYS } from '../utils/constants'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -41,6 +42,21 @@ export default function Login() {
       }
 
       const data = await response.json()
+      
+      // Store token
+      localStorage.setItem(STORAGE_KEYS.TOKEN, data.token)
+      
+      // Store user object
+      const user = {
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        ecoScore: data.ecoScore,
+        verified: data.verified
+      }
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
+      
+      // Also store individual fields for backward compatibility
       localStorage.setItem('token', data.token)
       localStorage.setItem('userEmail', data.email)
       localStorage.setItem('userName', data.name)
