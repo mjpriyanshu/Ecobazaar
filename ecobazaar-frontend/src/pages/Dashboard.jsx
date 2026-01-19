@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Leaf, User, LogOut } from 'lucide-react'
+import Navbar from '../components/Navbar'
+import { STORAGE_KEYS } from '../utils/constants'
 
 export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('')
@@ -23,6 +25,10 @@ export default function Dashboard() {
   }, [navigate])
 
   const handleLogout = () => {
+    // Clear new STORAGE_KEYS
+    localStorage.removeItem(STORAGE_KEYS.TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.USER)
+    // Clear old keys for backward compatibility
     localStorage.removeItem('token')
     localStorage.removeItem('userEmail')
     localStorage.removeItem('userName')
@@ -76,48 +82,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-linear-to-b from-green-50 to-white">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-2xl font-bold text-green-600">
-            <Leaf size={32} />
-            EcoBazaar
-          </div>
-          
-          {/* User Profile Section */}
-          <div className="relative">
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-3 px-4 py-2 bg-green-50 rounded-lg hover:bg-green-100 transition"
-            >
-              <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
-                {getUserInitial()}
-              </div>
-              <span className="text-gray-700 font-medium">{userName || userEmail}</span>
-            </button>
-
-            {/* Dropdown Menu */}
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-green-50 transition"
-                  onClick={() => setShowDropdown(false)}
-                >
-                  <User size={18} />
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition w-full text-left"
-                >
-                  <LogOut size={18} />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Featured Products */}
       <section className="max-w-7xl mx-auto px-4 py-16">
