@@ -39,6 +39,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/products/eco-certified").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/eco-sorted").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/{id}/alternatives").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/{id}/similar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/recommendations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/carbon-savings").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

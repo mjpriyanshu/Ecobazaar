@@ -4,6 +4,7 @@ import com.infosys.springboard.ecobazaar.entity.EcoRating;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 public class CarbonCalculationService {
@@ -95,7 +96,7 @@ public class CarbonCalculationService {
         }
         
         BigDecimal reduction = categoryAverage.subtract(carbonImpact);
-        BigDecimal percentage = reduction.divide(categoryAverage, 4, BigDecimal.ROUND_HALF_UP)
+        BigDecimal percentage = reduction.divide(categoryAverage, 4, RoundingMode.HALF_UP)
                                         .multiply(new BigDecimal("100"));
         
         return Math.max(0.0, percentage.doubleValue());

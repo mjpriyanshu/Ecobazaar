@@ -36,14 +36,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtUtil.extractEmail(token);
                 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    // Create authentication with proper authorities
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+                            new UsernamePasswordAuthenticationToken(email, null, 
+                                    java.util.Collections.singletonList(
+                                            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
                     
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
-                // Invalid token, continue without authentication
+                // Invalid token, log and continue without authentication
+                System.err.println("JWT Token validation failed: " + e.getMessage());
             }
         }
 
