@@ -5,6 +5,7 @@ import com.infosys.springboard.ecobazaar.entity.User;
 import com.infosys.springboard.ecobazaar.repository.UserRepository;
 import com.infosys.springboard.ecobazaar.security.JwtUtil;
 import com.infosys.springboard.ecobazaar.service.ProductService;
+import com.infosys.springboard.ecobazaar.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -20,6 +22,9 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private RecommendationService recommendationService;
 
     @Autowired
     private UserRepository userRepository;
@@ -37,9 +42,9 @@ public class ProductController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    /**
-     * Create a new product (SELLER only)
-     */
+    /*
+    Create a new product (for SELLER only)
+    */
     @PostMapping
     public ResponseEntity<?> createProduct(@RequestBody Product product, 
                                            @RequestHeader("Authorization") String authHeader) {
@@ -66,16 +71,6 @@ public class ProductController {
     public ResponseEntity<List<Product>> getApprovedProducts() {
         List<Product> products = productService.getApprovedProducts();
         return ResponseEntity.ok(products);
-    }
-
-    /**
-     * Get product by ID (PUBLIC)
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -292,5 +287,70 @@ public class ProductController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    /**
+     * Get greener alternatives for a product (PUBLIC)
+     */
+    @GetMapping("/{id}/alternatives")
+    public ResponseEntity<List<Product>> getGreenerAlternatives(@PathVariable Long id) {
+        List<Product> alternatives = recommendationService.getGreenerAlternatives(id);
+        return ResponseEntity.ok(alternatives);
+    }
+
+    /**
+     * Calculate carbon savings between products (PUBLIC)
+     */
+    @GetMapping("/carbon-savings")
+    public ResponseEntity<?> calculateCarbonSavings(
+            @RequestParam Long currentProductId,
+            @RequestParam Long alternativeProductId,
+            @RequestParam Integer quantity) {
+        Map<String, Object> savings = recommendationService.calculateCarbonSavings(
+                currentProductId, alternativeProductId, quantity);
+        return ResponseEntity.ok(savings);
+    }
+
+    /**
+     * Get eco-friendly recommendations (PUBLIC)
+     */
+    @GetMapping("/recommendations/eco-friendly")
+    public ResponseEntity<List<Product>> getEcoFriendlyRecommendations(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<Product> recommendations = recommendationService.getEcoFriendlyRecommendations(limit);
+        return ResponseEntity.ok(recommendations);
+    }
+
+    /**
+     * Get similar products (PUBLIC)
+     */
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<List<Product>> getSimilarProducts(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "5") int limit) {
+        List<Product> similar = recommendationService.getSimilarProducts(id, limit);
+        return ResponseEntity.ok(similar);
+    }
+
+    /**
+     * Get best eco-value products (PUBLIC)
+     */
+    @GetMapping("/recommendations/best-eco-value")
+    public ResponseEntity<List<Product>> getBestEcoValueProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "10") int limit) {
+        List<Product> products = recommendationService.getBestEcoValueProducts(category, limit);
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * Get product by ID (PUBLIC)
+     * IMPORTANT: This must be LAST to avoid matching specific paths like /recommendations, /search, etc.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+        return productService.getProductById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
