@@ -1,38 +1,32 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Leaf } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import Loader from '../components/Loader'
+import EcoRatingBadge from '../components/EcoRatingBadge'
+import { getEcoFriendlyRecommendations } from '../features/recommendations/recommendationAPI'
+import { formatPrice, formatCarbonImpact, getProductImageUrl } from '../utils/helpers'
 
 export default function Home() {
-  const products = [
-    {
-      id: 1,
-      name: 'Organic Cotton T-Shirt',
-      price: '₹1,499',
-      image: '/img_assets/Tshirt.jpg',
-      description: 'Sustainable and comfortable',
-    },
-    {
-      id: 2,
-      name: 'Bamboo Toothbrush Set',
-      price: '₹499',
-      image: '/img_assets/bambbrush.jpg',
-      description: 'Eco-friendly dental care',
-    },
-    {
-      id: 3,
-      name: 'Reusable Water Bottle',
-      price: '₹899',
-      image: '/img_assets/bottle.jpg',
-      description: 'Stainless steel construction',
-    },
-    {
-      id: 4,
-      name: 'Bamboo Cutting Board',
-      price: '₹1,199',
-      image: '/img_assets/cuttinboard.jpg',
-      description: 'Perfect for your kitchen',
-    },
-  ]
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      setLoading(true);
+      const ecoProducts = await getEcoFriendlyRecommendations(8); // Fetch 8 eco-friendly products
+      setProducts(ecoProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-b from-green-50 to-white">
@@ -62,41 +56,85 @@ export default function Home() {
 
       {/* Featured Products */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-gray-800 mb-12 text-center">
-          Featured Products
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Leaf size={32} className="text-green-600" />
+          <h2 className="text-3xl font-bold text-gray-800">
+            Eco-Friendly Featured Products
+          </h2>
+        </div>
+        <p className="text-center text-gray-600 mb-12">
+          Handpicked sustainable products with the lowest carbon footprint
+        </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden"
-            >
-              <div className="h-48 overflow-hidden bg-gray-100">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover hover:scale-105 transition duration-300"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
-                  {product.name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {product.description}
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-green-600">
-                    {product.price}
-                  </span>
-                  <button className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition">
-                    <ShoppingCart size={20} />
-                  </button>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p>No products available at the moment.</p>
+            <Link to="/products" className="text-green-600 hover:underline mt-2 inline-block">
+              Browse all products
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                onClick={() => navigate(`/products/${product.id}`)}
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer"
+              >
+                <div className="h-48 overflow-hidden bg-gray-100 relative">
+                  <img 
+                    src={getProductImageUrl(product.imageUrl)} 
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <EcoRatingBadge rating={product.ecoRating} size="sm" />
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+                    {product.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {product.description}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
+                    <Leaf size={14} className="text-green-600" />
+                    <span>{formatCarbonImpact(product.carbonImpact)}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-green-600">
+                      {formatPrice(product.price)}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/products/${product.id}`);
+                      }}
+                      className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition"
+                    >
+                      <ShoppingCart size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
+
+        <div className="text-center mt-12">
+          <Link
+            to="/products"
+            className="inline-block px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition"
+          >
+            Browse All Products
+          </Link>
         </div>
       </section>
 
