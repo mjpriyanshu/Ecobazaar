@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Leaf, AlertTriangle, XCircle } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '../../utils/constants';
 
 const FilterPanel = ({ onFilter, onReset }) => {
@@ -34,9 +35,9 @@ const FilterPanel = ({ onFilter, onReset }) => {
   };
 
   const ecoRatings = [
-    { value: 'ECO_FRIENDLY', label: '🌱 Eco-Friendly', color: 'text-green-600' },
-    { value: 'MODERATE', label: '⚠️ Moderate', color: 'text-yellow-600' },
-    { value: 'HIGH_IMPACT', label: '🔴 High Impact', color: 'text-red-600' },
+    { value: 'ECO_FRIENDLY', label: 'Eco-Friendly', icon: <Leaf className="w-4 h-4" />, color: 'text-green-600' },
+    { value: 'MODERATE', label: 'Moderate', icon: <AlertTriangle className="w-4 h-4" />, color: 'text-yellow-600' },
+    { value: 'HIGH_IMPACT', label: 'High Impact', icon: <XCircle className="w-4 h-4" />, color: 'text-red-600' },
   ];
 
   return (
@@ -91,7 +92,8 @@ const FilterPanel = ({ onFilter, onReset }) => {
                   onChange={(e) => handleFilterChange('ecoRating', e.target.value)}
                   className="w-4 h-4 text-green-500 focus:ring-green-500"
                 />
-                <span className={`text-sm ${rating.color} group-hover:font-semibold transition-all`}>
+                <span className={`flex items-center gap-1 text-sm ${rating.color} group-hover:font-semibold transition-all`}>
+                  {rating.icon}
                   {rating.label}
                 </span>
               </label>

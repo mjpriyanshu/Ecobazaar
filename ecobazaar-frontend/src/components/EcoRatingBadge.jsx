@@ -1,8 +1,17 @@
 import PropTypes from 'prop-types';
+import { Leaf, AlertTriangle, XCircle, HelpCircle } from 'lucide-react';
 import { getEcoRatingConfig } from '../utils/helpers';
+
+const iconMap = {
+  Leaf: Leaf,
+  AlertTriangle: AlertTriangle,
+  XCircle: XCircle,
+  HelpCircle: HelpCircle,
+};
 
 const EcoRatingBadge = ({ ecoRating, showDescription = false }) => {
   const config = getEcoRatingConfig(ecoRating);
+  const IconComponent = iconMap[config.iconName] || HelpCircle;
 
   return (
     <div className="inline-block">
@@ -14,7 +23,7 @@ const EcoRatingBadge = ({ ecoRating, showDescription = false }) => {
           borderColor: config.color,
         }}
       >
-        <span className="text-base leading-none">{config.icon}</span>
+        <IconComponent className="w-4 h-4" />
         <span className="font-semibold">{config.label}</span>
       </div>
       

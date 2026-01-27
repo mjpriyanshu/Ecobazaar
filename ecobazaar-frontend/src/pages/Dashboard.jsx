@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Leaf, User, LogOut } from 'lucide-react'
+import { ShoppingCart, Leaf, User, LogOut, Globe, CheckCircle, Truck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { STORAGE_KEYS } from '../utils/constants'
 
@@ -133,7 +133,7 @@ export default function Dashboard() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">🌍</div>
+              <Globe className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Eco-Friendly
               </h3>
@@ -143,7 +143,7 @@ export default function Dashboard() {
             </div>
             
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">✅</div>
+              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Quality Assured
               </h3>
@@ -153,7 +153,7 @@ export default function Dashboard() {
             </div>
             
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">🚚</div>
+              <Truck className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Fast Shipping
               </h3>

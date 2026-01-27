@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Package, Clock, CheckCircle, XCircle, Filter, BarChart3 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import ProductList from '../../features/products/ProductList';
 import { getPendingProducts, getAllProducts, approveProduct, unapproveProduct } from '../../features/products/productAPI';
-import { STORAGE_KEYS } from '../../utils/constants';
+import { STORAGE_KEYS, PRODUCT_CATEGORIES } from '../../utils/constants';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'pending', 'approved'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'approved'
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     // Check if user is admin
@@ -30,15 +35,24 @@ const AdminDashboard = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Apply filter
-    if (filter === 'pending') {
-      setFilteredProducts(products.filter(p => !p.approved));
-    } else if (filter === 'approved') {
-      setFilteredProducts(products.filter(p => p.approved));
-    } else {
-      setFilteredProducts(products);
+    // Apply filters
+    let filtered = products;
+    
+    // Status filter
+    if (statusFilter === 'pending') {
+      filtered = filtered.filter(p => !p.approved);
+    } else if (statusFilter === 'approved') {
+      filtered = filtered.filter(p => p.approved);
     }
-  }, [filter, products]);
+    
+    // Category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(p => p.category === categoryFilter);
+    }
+    
+    setFilteredProducts(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [statusFilter, categoryFilter, products]);
 
   const fetchProducts = async () => {
     try {
@@ -59,144 +73,306 @@ const AdminDashboard = () => {
   const handleApprove = async (productId) => {
     try {
       await approveProduct(productId);
-      alert('Product approved successfully!');
+      toast.success('Product approved successfully!');
       fetchProducts();
     } catch (error) {
       console.error('Error approving product:', error);
-      alert('Failed to approve product');
+      toast.error('Failed to approve product');
     }
   };
 
   const handleUnapprove = async (productId) => {
     try {
       await unapproveProduct(productId);
-      alert('Product unapproved successfully!');
+      toast.success('Product unapproved successfully!');
       fetchProducts();
     } catch (error) {
       console.error('Error unapproving product:', error);
-      alert('Failed to unapprove product');
+      toast.error('Failed to unapprove product');
     }
   };
 
   const pendingCount = products.filter(p => !p.approved).length;
   const approvedCount = products.filter(p => p.approved).length;
 
+  // Category statistics
+  const getCategoryStats = () => {
+    const stats = {};
+    PRODUCT_CATEGORIES.forEach(cat => {
+      const catProducts = products.filter(p => p.category === cat.value);
+      stats[cat.value] = {
+        total: catProducts.length,
+        pending: catProducts.filter(p => !p.approved).length,
+        approved: catProducts.filter(p => p.approved).length
+      };
+    });
+    return stats;
+  };
+
+  const categoryStats = getCategoryStats();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage product approvals and platform content</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-1">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage product approvals and monitor platform activity</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">📦</div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-5 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Total Products</p>
-                <p className="text-3xl font-bold text-gray-800">{products.length}</p>
+                <p className="text-blue-100 text-sm font-medium">Total Products</p>
+                <p className="text-4xl font-bold mt-1">{products.length}</p>
               </div>
+              <Package className="w-12 h-12 opacity-80" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition" onClick={() => setFilter('pending')}>
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">⏳</div>
+          <div 
+            onClick={() => setStatusFilter('pending')}
+            className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg p-5 text-white cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Pending Approval</p>
-                <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
+                <p className="text-yellow-100 text-sm font-medium">Pending Approval</p>
+                <p className="text-4xl font-bold mt-1">{pendingCount}</p>
               </div>
+              <Clock className="w-12 h-12 opacity-80" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition" onClick={() => setFilter('approved')}>
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">✅</div>
+          <div 
+            onClick={() => setStatusFilter('approved')}
+            className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-5 text-white cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Approved</p>
-                <p className="text-3xl font-bold text-green-600">{approvedCount}</p>
+                <p className="text-green-100 text-sm font-medium">Approved</p>
+                <p className="text-4xl font-bold mt-1">{approvedCount}</p>
               </div>
+              <CheckCircle className="w-12 h-12 opacity-80" />
             </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-5 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-sm font-medium">Approval Rate</p>
+                <p className="text-4xl font-bold mt-1">
+                  {products.length > 0 ? Math.round((approvedCount / products.length) * 100) : 0}%
+                </p>
+              </div>
+              <BarChart3 className="w-12 h-12 opacity-80" />
+            </div>
+          </div>
+        </div>
+
+        {/* Category Breakdown */}
+        <div className="bg-white rounded-xl shadow-md p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-gray-600" />
+            <h2 className="text-lg font-bold text-gray-800">Category Breakdown</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {PRODUCT_CATEGORIES.map((category) => (
+              <button
+                key={category.value}
+                onClick={() => setCategoryFilter(categoryFilter === category.value ? 'all' : category.value)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  categoryFilter === category.value
+                    ? 'border-green-500 bg-green-50 shadow-md'
+                    : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="text-left">
+                  <p className="font-semibold text-gray-800 text-sm mb-1">{category.label}</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-600">Total: {categoryStats[category.value]?.total || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-yellow-600 font-medium text-xs">
+                      ⏳ {categoryStats[category.value]?.pending || 0}
+                    </span>
+                    <span className="text-green-600 font-medium text-xs">
+                      ✓ {categoryStats[category.value]?.approved || 0}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              filter === 'all'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All Products ({products.length})
-          </button>
-          <button
-            onClick={() => setFilter('pending')}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              filter === 'pending'
-                ? 'bg-yellow-500 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Pending ({pendingCount})
-          </button>
-          <button
-            onClick={() => setFilter('approved')}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              filter === 'approved'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Approved ({approvedCount})
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-5 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'all'
+                  ? 'bg-gray-800 text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              }`}
+            >
+              All ({products.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('pending')}
+              className={`px-5 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'pending'
+                  ? 'bg-yellow-500 text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              }`}
+            >
+              Pending ({pendingCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('approved')}
+              className={`px-5 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'approved'
+                  ? 'bg-green-600 text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              }`}
+            >
+              Approved ({approvedCount})
+            </button>
+          </div>
+          
+          {categoryFilter !== 'all' && (
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+            >
+              Clear Category Filter
+            </button>
+          )}
         </div>
 
-        {/* Products Grid with Approval Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-2xl shadow-md overflow-hidden">
-              {/* Product Image */}
-              <div className="h-48 bg-gray-100">
-                <img
-                  src={product.imageUrl || 'https://via.placeholder.com/400x300?text=No+Image'}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+        {/* Products List View */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Product</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Price</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredProducts
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={product.imageUrl || 'https://via.placeholder.com/80x80?text=No+Image'}
+                            alt={product.name}
+                            className="w-12 h-12 rounded-lg object-cover"
+                          />
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">{product.name}</p>
+                            <p className="text-xs text-gray-500">ID: {product.id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-gray-700">{product.category}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-green-600">${product.price}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {product.approved ? (
+                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1 w-fit">
+                            <CheckCircle className="w-3 h-3" /> Approved
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full flex items-center gap-1 w-fit">
+                            <Clock className="w-3 h-3" /> Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center gap-2">
+                          {product.approved ? (
+                            <button
+                              onClick={() => handleUnapprove(product.id)}
+                              className="px-4 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium text-xs flex items-center gap-1"
+                            >
+                              <XCircle className="w-3 h-3" /> Revoke
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleApprove(product.id)}
+                              className="px-4 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium text-xs flex items-center gap-1"
+                            >
+                              <CheckCircle className="w-3 h-3" /> Approve
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {filteredProducts.length > itemsPerPage && (
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
               </div>
-
-              {/* Product Info */}
-              <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-gray-800">{product.name}</h3>
-                <p className="text-sm text-gray-600 mb-2">{product.category}</p>
-                <p className="text-xl font-bold text-green-600 mb-4">${product.price}</p>
-
-                {/* Approval Actions */}
-                {product.approved ? (
-                  <button
-                    onClick={() => handleUnapprove(product.id)}
-                    className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium"
-                  >
-                    ✕ Unapprove
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleApprove(product.id)}
-                    className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium"
-                  >
-                    ✓ Approve
-                  </button>
-                )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.ceil(filteredProducts.length / itemsPerPage) }, (_, i) => i + 1)
+                  .filter(page => {
+                    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+                    return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                  })
+                  .map((page, index, array) => (
+                    <span key={page}>
+                      {index > 0 && array[index - 1] !== page - 1 && (
+                        <span className="px-2 text-gray-400">...</span>
+                      )}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                          currentPage === page
+                            ? 'bg-green-600 text-white'
+                            : 'bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </span>
+                  ))}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredProducts.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredProducts.length / itemsPerPage)}
+                  className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  Next
+                </button>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
         {loading && (
@@ -207,7 +383,7 @@ const AdminDashboard = () => {
 
         {!loading && filteredProducts.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">📦</div>
+            <Package className="w-24 h-24 text-gray-400 mx-auto mb-4" />
             <p className="text-xl text-gray-600">No products found in this category</p>
           </div>
         )}

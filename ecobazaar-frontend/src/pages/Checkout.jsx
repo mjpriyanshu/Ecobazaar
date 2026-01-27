@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Leaf, TrendingDown, CheckCircle, CreditCard } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { ShoppingBag, Leaf, TrendingDown, CheckCircle, CreditCard, AlertTriangle, XCircle, Lightbulb } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Loader from '../components/Loader';
 import { getCart } from '../features/cart/cartAPI';
@@ -33,7 +34,7 @@ const Checkout = () => {
       const cartData = await getCart();
       
       if (!cartData || cartData.items.length === 0) {
-        alert('Your cart is empty!');
+        toast.info('Your cart is empty!');
         navigate('/cart');
         return;
       }
@@ -41,7 +42,7 @@ const Checkout = () => {
       setCart(cartData);
     } catch (error) {
       console.error('Error fetching cart:', error);
-      alert('Failed to load cart');
+      toast.error('Failed to load cart');
       navigate('/cart');
     } finally {
       setLoading(false);
@@ -56,7 +57,7 @@ const Checkout = () => {
       setOrderComplete(true);
     } catch (error) {
       console.error('Error creating order:', error);
-      alert(error.response?.data?.error || 'Failed to place order. Please try again.');
+      toast.error(error.response?.data?.error || 'Failed to place order');
     } finally {
       setProcessing(false);
     }
@@ -260,18 +261,21 @@ const Checkout = () => {
                   <div className="space-y-1">
                     <div>≈ {(cart.totalCarbon * 4.5).toFixed(1)} km of driving</div>
                     <div>≈ {Math.ceil(cart.totalCarbon / 21)} tree{Math.ceil(cart.totalCarbon / 21) > 1 ? 's' : ''} needed to offset (1 year)</div>
-                    <div>
+                    <div className="flex items-center gap-2">
                       {cart.totalCarbon < 10 
-                        ? '🌱 Great choice! Low carbon impact' 
+                        ? <><Leaf className="w-4 h-4 text-green-600" /> Great choice! Low carbon impact</>
                         : cart.totalCarbon < 20
-                        ? '⚠️ Moderate carbon impact'
-                        : '🔴 High carbon impact - consider alternatives'}
+                        ? <><AlertTriangle className="w-4 h-4 text-yellow-600" /> Moderate carbon impact</>
+                        : <><XCircle className="w-4 h-4 text-red-600" /> High carbon impact - consider alternatives</>}
                     </div>
                   </div>
                 </div>
 
                 <div className="text-xs text-gray-600 bg-white/50 rounded-lg p-3">
-                  <p className="font-semibold mb-1">💡 Did you know?</p>
+                  <div className="flex items-center gap-2 font-semibold mb-1">
+                    <Lightbulb className="w-4 h-4 text-yellow-600" />
+                    <p>Did you know?</p>
+                  </div>
                   <p>
                     By shopping with EcoBazaar, you're making informed choices about your environmental impact.
                     Every purchase helps track and reduce your carbon footprint!

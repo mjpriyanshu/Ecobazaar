@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Leaf, Package } from 'lucide-react';
 import { STORAGE_KEYS } from '../utils/constants';
 import { getCart } from '../features/cart/cartAPI';
 
@@ -48,7 +48,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-green-600">
-            <span className="text-3xl">🌱</span>
+            <Leaf className="w-8 h-8" />
             EcoBazaar
           </Link>
 
@@ -101,9 +101,9 @@ const Navbar = () => {
                 {user.role === 'SELLER' && (
                   <Link
                     to="/seller/dashboard"
-                    className="px-4 py-2 text-gray-700 hover:text-green-600 font-medium transition"
+                    className="px-4 py-2 text-gray-700 hover:text-green-600 font-medium transition flex items-center gap-2"
                   >
-                    📦 My Products
+                    <Package className="w-4 h-4" /> My Products
                   </Link>
                 )}
 

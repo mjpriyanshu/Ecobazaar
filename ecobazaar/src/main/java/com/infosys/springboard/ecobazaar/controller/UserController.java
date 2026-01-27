@@ -84,8 +84,6 @@ public class UserController {
             
             return response;
         } catch (Exception e) {
-            System.err.println("Error updating profile: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Failed to update profile: " + e.getMessage());
         }
     }

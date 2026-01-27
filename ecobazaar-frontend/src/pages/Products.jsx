@@ -112,13 +112,18 @@ const Products = () => {
       <Navbar />
       
       {/* Header */}
-      <div className="bg-linear-to-r from-green-500 to-green-600 text-white py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-2">Eco-Friendly Products</h1>
-          <p className="text-green-100 text-lg">
-            Discover sustainable products with transparent carbon footprint data
-          </p>
+      <div className="bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-5"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-5xl font-bold mb-3 drop-shadow-lg">Eco-Friendly Products</h1>
+            <p className="text-green-50 text-xl leading-relaxed">
+              Discover sustainable products with transparent carbon footprint data
+            </p>
+          </div>
         </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
       </div>
 
       {/* Main Content */}

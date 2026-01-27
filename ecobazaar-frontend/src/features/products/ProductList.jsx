@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Package } from 'lucide-react';
 import ProductCard from './ProductCard';
 import Loader from '../../components/Loader';
 
@@ -32,7 +33,7 @@ const ProductList = ({
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="text-6xl mb-4">📦</div>
+        <Package className="w-24 h-24 text-gray-400 mb-4" />
         <h3 className="text-xl font-semibold text-gray-700 mb-2">{emptyMessage}</h3>
         <p className="text-gray-500">Try adjusting your filters or search criteria</p>
       </div>

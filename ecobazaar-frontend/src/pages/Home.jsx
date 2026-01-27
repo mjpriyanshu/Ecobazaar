@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Leaf } from 'lucide-react'
+import { ShoppingCart, Leaf, Globe, CheckCircle, Truck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Loader from '../components/Loader'
 import EcoRatingBadge from '../components/EcoRatingBadge'
@@ -83,23 +83,23 @@ export default function Home() {
               <div
                 key={product.id}
                 onClick={() => navigate(`/products/${product.id}`)}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer"
               >
-                <div className="h-48 overflow-hidden bg-gray-100 relative">
+                <div className="h-40 overflow-hidden bg-gray-100 relative">
                   <img 
                     src={getProductImageUrl(product.imageUrl)} 
                     alt={product.name}
                     className="w-full h-full object-cover hover:scale-105 transition duration-300"
                   />
                   <div className="absolute top-2 right-2">
-                    <EcoRatingBadge rating={product.ecoRating} size="sm" />
+                    <EcoRatingBadge ecoRating={product.ecoRating} />
                   </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-800 mb-2 line-clamp-2 min-h-[2.5rem]">
                     {product.name}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  <p className="text-gray-600 text-xs mb-3 line-clamp-2">
                     {product.description}
                   </p>
                   
@@ -109,7 +109,7 @@ export default function Home() {
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-xl font-bold text-green-600">
                       {formatPrice(product.price)}
                     </span>
                     <button 
@@ -119,7 +119,7 @@ export default function Home() {
                       }}
                       className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition"
                     >
-                      <ShoppingCart size={20} />
+                      <ShoppingCart size={18} />
                     </button>
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">🌍</div>
+              <Globe className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Eco-Friendly
               </h3>
@@ -157,7 +157,7 @@ export default function Home() {
             </div>
             
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">✅</div>
+              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Quality Assured
               </h3>
@@ -167,7 +167,7 @@ export default function Home() {
             </div>
             
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="text-4xl mb-4">🚚</div>
+              <Truck className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Fast Shipping
               </h3>

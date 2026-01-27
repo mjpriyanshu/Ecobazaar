@@ -1,8 +1,17 @@
 import PropTypes from 'prop-types';
+import { Leaf, AlertTriangle, XCircle, HelpCircle } from 'lucide-react';
 import { getEcoRatingConfig } from '../utils/helpers';
+
+const iconMap = {
+  Leaf: Leaf,
+  AlertTriangle: AlertTriangle,
+  XCircle: XCircle,
+  HelpCircle: HelpCircle,
+};
 
 const CarbonBadge = ({ carbonImpact, ecoRating, size = 'medium', showLabel = true }) => {
   const config = getEcoRatingConfig(ecoRating);
+  const IconComponent = iconMap[config.iconName] || HelpCircle;
   
   const sizeClasses = {
     small: 'px-2 py-1 text-xs gap-1',
@@ -11,9 +20,9 @@ const CarbonBadge = ({ carbonImpact, ecoRating, size = 'medium', showLabel = tru
   };
 
   const iconSizes = {
-    small: 'text-sm',
-    medium: 'text-lg',
-    large: 'text-xl',
+    small: 'w-3 h-3',
+    medium: 'w-4 h-4',
+    large: 'w-5 h-5',
   };
 
   const valueSizes = {
@@ -30,9 +39,7 @@ const CarbonBadge = ({ carbonImpact, ecoRating, size = 'medium', showLabel = tru
         borderColor: config.color,
       }}
     >
-      <span className={`leading-none ${iconSizes[size]}`} style={{ color: config.color }}>
-        {config.icon}
-      </span>
+      <IconComponent className={iconSizes[size]} style={{ color: config.color }} />
       
       <div className="flex flex-col gap-0.5">
         <span className={`font-bold leading-none ${valueSizes[size]}`} style={{ color: config.color }}>

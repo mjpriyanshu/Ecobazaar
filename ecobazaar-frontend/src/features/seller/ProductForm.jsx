@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Navbar from '../../components/Navbar';
 import { createProduct, updateProduct, getProductById } from '../products/productAPI';
 import { PRODUCT_CATEGORIES, STORAGE_KEYS } from '../../utils/constants';
@@ -121,10 +122,10 @@ const ProductForm = () => {
 
       if (isEditMode) {
         await updateProduct(id, productData);
-        alert('Product updated successfully!');
+        toast.success('Product updated successfully!');
       } else {
         await createProduct(productData);
-        alert('Product created successfully! Awaiting admin approval.');
+        toast.success('Product created! Awaiting admin approval.');
       }
 
       navigate('/seller/dashboard');

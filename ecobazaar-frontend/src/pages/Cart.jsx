@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, Leaf, TrendingDown, AlertCircle, Truck } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { Trash2, Plus, Minus, ShoppingBag, Leaf, TrendingDown, AlertCircle, Truck, Sparkles } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Loader from '../components/Loader';
 import { getCart, updateCartItem, removeCartItem, clearCart } from '../features/cart/cartAPI';
@@ -76,37 +77,39 @@ const Cart = () => {
       setCart(updatedCart);
     } catch (error) {
       console.error('Error updating quantity:', error);
-      alert(error.response?.data?.error || 'Failed to update quantity');
+      toast.error('Failed to update quantity');
     } finally {
       setUpdating(false);
     }
   };
 
   const handleRemoveItem = async (cartItemId) => {
-    if (!confirm('Remove this item from cart?')) return;
+    if (!window.confirm('Remove this item from cart?')) return;
 
     try {
       setUpdating(true);
       const updatedCart = await removeCartItem(cartItemId);
       setCart(updatedCart);
+      toast.success('Item removed from cart');
     } catch (error) {
       console.error('Error removing item:', error);
-      alert('Failed to remove item');
+      toast.error('Failed to remove item');
     } finally {
       setUpdating(false);
     }
   };
 
   const handleClearCart = async () => {
-    if (!confirm('Clear all items from cart?')) return;
+    if (!window.confirm('Clear all items from cart?')) return;
 
     try {
       setUpdating(true);
       const updatedCart = await clearCart();
       setCart(updatedCart);
+      toast.success('Cart cleared');
     } catch (error) {
       console.error('Error clearing cart:', error);
-      alert('Failed to clear cart');
+      toast.error('Failed to clear cart');
     } finally {
       setUpdating(false);
     }
@@ -114,7 +117,7 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (!cart || cart.items.length === 0) {
-      alert('Your cart is empty');
+      toast.info('Your cart is empty');
       return;
     }
     navigate('/checkout');
@@ -292,8 +295,8 @@ const Cart = () => {
               {cart.totalPrice >= SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD && (
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow-md p-5 border border-green-200">
                   <div className="flex items-center gap-2 text-green-700">
-                    <Truck size={20} />
-                    <span className="font-bold">🎉 You've unlocked FREE Shipping!</span>
+                    <Sparkles size={20} className="text-green-600" />
+                    <span className="font-bold">You've unlocked FREE Shipping!</span>
                   </div>
                   <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
                     <Leaf size={14} className="text-green-600" />

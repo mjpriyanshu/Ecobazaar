@@ -80,28 +80,28 @@ export const ECO_THRESHOLDS = {
 // Eco-Rating Display Config
 export const ECO_RATING_CONFIG = {
   ECO_FRIENDLY: {
-    label: 'Eco-Friendly',
+    label: 'ECO',
     color: '#22c55e',      // green
     bgColor: '#dcfce7',
-    icon: '🌱',
+    iconName: 'Leaf',
   },
   MODERATE: {
-    label: 'Moderate',
+    label: 'Medium',
     color: '#eab308',      // yellow
     bgColor: '#fef9c3',
-    icon: '⚠️',
+    iconName: 'AlertTriangle',
   },
   HIGH_IMPACT: {
-    label: 'High Impact',
+    label: 'High',
     color: '#ef4444',      // red
     bgColor: '#fee2e2',
-    icon: '🔴',
+    iconName: 'XCircle',
   },
   UNRATED: {
-    label: 'Unrated',
+    label: 'N/A',
     color: '#6b7280',      // gray
     bgColor: '#f3f4f6',
-    icon: '❓',
+    iconName: 'HelpCircle',
   },
 };
 

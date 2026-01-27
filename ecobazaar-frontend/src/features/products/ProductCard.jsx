@@ -33,11 +33,11 @@ const ProductCard = ({ product, showActions = false, onEdit, onDelete }) => {
 
   return (
     <div 
-      className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col h-full"
+      className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col h-full"
       onClick={handleCardClick}
     >
       {/* Product Image */}
-      <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+      <div className="relative w-full h-40 overflow-hidden bg-gray-100">
         <img
           src={imageUrl}
           alt={product.name}
@@ -47,15 +47,15 @@ const ProductCard = ({ product, showActions = false, onEdit, onDelete }) => {
         
         {/* Eco-Certified Badge */}
         {product.ecoCertified && (
-          <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md">
-            <span className="bg-white text-green-500 rounded-full w-4.5 h-4.5 flex items-center justify-center text-[0.7rem] font-black">✓</span>
-            Eco-Certified
+          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 shadow-md">
+            <span className="bg-white text-green-500 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[0.6rem] font-black">✓</span>
+            Certified
           </div>
         )}
         
         {/* Approval Status (for seller view) */}
         {showActions && (
-          <div className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md ${
+          <div className={`absolute top-2 left-2 px-2 py-1 rounded-md text-xs font-bold shadow-md ${
             product.approved ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
           }`}>
             {product.approved ? '✓ Approved' : '⏳ Pending'}
@@ -64,26 +64,24 @@ const ProductCard = ({ product, showActions = false, onEdit, onDelete }) => {
       </div>
 
       {/* Product Info */}
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        {/* Category */}
-        <span className="text-xs text-gray-500 uppercase font-semibold tracking-wide">
-          {product.category}
-        </span>
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        {/* Category & Eco Rating in one line */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-gray-500 uppercase font-semibold tracking-wide">
+            {product.category}
+          </span>
+          <EcoRatingBadge ecoRating={product.ecoRating} />
+        </div>
 
         {/* Product Name */}
-        <h3 className="text-lg font-bold text-gray-900 leading-tight min-h-[2.8rem]">
+        <h3 className="text-sm font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem]">
           {product.name}
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-600 leading-relaxed flex-1">
-          {truncateText(product.description, 80)}
+        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
+          {truncateText(product.description, 60)}
         </p>
-
-        {/* Eco Rating */}
-        <div className="my-2">
-          <EcoRatingBadge ecoRating={product.ecoRating} />
-        </div>
 
         {/* Carbon Badge */}
         <div className="flex justify-start">
@@ -95,9 +93,9 @@ const ProductCard = ({ product, showActions = false, onEdit, onDelete }) => {
         </div>
 
         {/* Price & Stock */}
-        <div className="flex justify-between items-end pt-3 border-t border-gray-200 mt-auto">
-          <div className="flex flex-col gap-1">
-            <span className="text-2xl font-extrabold text-green-500">
+        <div className="flex justify-between items-end pt-2 border-t border-gray-200 mt-auto">
+          <div className="flex flex-col">
+            <span className="text-xl font-extrabold text-green-600">
               {formatPrice(product.price)}
             </span>
             <span className="text-xs text-gray-500">
@@ -109,14 +107,14 @@ const ProductCard = ({ product, showActions = false, onEdit, onDelete }) => {
           {showActions && (
             <div className="flex gap-2">
               <button
-                className="p-2 rounded-md text-xl transition-all hover:scale-110 hover:bg-blue-50"
+                className="p-1.5 rounded-md text-lg transition-all hover:scale-110 hover:bg-blue-50"
                 onClick={handleEdit}
                 title="Edit Product"
               >
                 ✏️
               </button>
               <button
-                className="p-2 rounded-md text-xl transition-all hover:scale-110 hover:bg-red-50"
+                className="p-1.5 rounded-md text-lg transition-all hover:scale-110 hover:bg-red-50"
                 onClick={handleDelete}
                 title="Delete Product"
               >
