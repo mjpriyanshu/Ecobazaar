@@ -41,6 +41,33 @@ export const API_ENDPOINTS = {
     UNAPPROVE: (id) => `/products/admin/${id}/unapprove`,
     ECO_CERTIFY: (id) => `/products/admin/${id}/eco-certify`,
   },
+
+  // Cart
+  CART: {
+    BASE: '/cart',
+    ITEMS: '/cart/items',
+    UPDATE_ITEM: (id) => `/cart/items/${id}`,
+    REMOVE_ITEM: (id) => `/cart/items/${id}`,
+    COUNT: '/cart/count',
+  },
+
+  // Orders
+  ORDERS: {
+    BASE: '/orders',
+    MY_ORDERS: '/orders/my-orders',
+    DETAIL: (id) => `/orders/${id}`,
+    CANCEL: (id) => `/orders/${id}/cancel`,
+    CARBON_IMPACT: '/orders/my-carbon-impact',
+  },
+
+  // Recommendations
+  RECOMMENDATIONS: {
+    ALTERNATIVES: (id) => `/products/${id}/alternatives`,
+    SIMILAR: (id) => `/products/${id}/similar`,
+    ECO_FRIENDLY: '/products/recommendations/eco-friendly',
+    BEST_ECO_VALUE: '/products/recommendations/best-eco-value',
+    CARBON_SAVINGS: '/products/carbon-savings',
+  },
 };
 
 // Eco-Rating Thresholds
@@ -96,6 +123,12 @@ export const PRODUCT_CATEGORIES = [
 
 // Pagination
 export const ITEMS_PER_PAGE = 12;
+
+// Shipping Configuration
+export const SHIPPING_CONFIG = {
+  FREE_SHIPPING_THRESHOLD: 499,
+  SHIPPING_CHARGE: 79,
+};
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
