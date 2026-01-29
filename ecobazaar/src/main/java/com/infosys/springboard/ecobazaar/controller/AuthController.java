@@ -69,6 +69,11 @@ public class AuthController {
             throw new RuntimeException("Invalid credentials");
         }
 
+        // Check if user is banned
+        if (user.getBanned() != null && user.getBanned()) {
+            throw new RuntimeException("Your account has been banned. Please contact support.");
+        }
+
         String token = jwtUtil.generateToken(user.getEmail());
         
         Map<String, Object> response = new HashMap<>();
@@ -78,6 +83,7 @@ public class AuthController {
         response.put("role", user.getRole());
         response.put("ecoScore", user.getEcoScore());
         response.put("verified", user.getVerified());
+        response.put("banned", user.getBanned());
         
         return response;
     }
