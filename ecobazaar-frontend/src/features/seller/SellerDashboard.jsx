@@ -309,7 +309,7 @@ const SellerDashboard = () => {
                         <span className="text-sm text-gray-700">{product.category}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-bold text-green-600">${product.price}</span>
+                        <span className="font-bold text-green-600">Rs {product.price}</span>
                       </td>
                       <td className="px-4 py-3">
                         {product.approved ? (

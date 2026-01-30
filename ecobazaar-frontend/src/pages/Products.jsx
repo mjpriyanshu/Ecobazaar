@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import SearchBar from '../features/products/SearchBar';
 import FilterPanel from '../features/products/FilterPanel';
 import ProductList from '../features/products/ProductList';
+import { Leaf } from 'lucide-react';
 import { 
   getApprovedProducts, 
   searchProducts, 
@@ -111,9 +112,36 @@ const Products = () => {
       {/* Navbar */}
       <Navbar />
       
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 text-white py-16 relative overflow-hidden">
+      {/* Header with Animated Leaves */}
+      <div className="bg-linear-to-r from-green-600 via-green-500 to-emerald-500 text-white py-16 relative overflow-hidden">
+        {/* Background overlay */}
         <div className="absolute inset-0 bg-black opacity-5"></div>
+        
+        {/* Animated Leaves */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-float-leaf opacity-0"
+              style={{
+                left: `${5 + (i * 12)}%`,
+                top: `-${20 + i * 10}px`,
+                animationDelay: `${i * 1.5}s`,
+                animationDuration: `${12 + (i % 3) * 2}s`,
+              }}
+            >
+              <Leaf 
+                className="text-white"
+                size={40 + (i % 3) * 8}
+                style={{
+                  transform: `rotate(${i * 45}deg)`,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Content */}
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-5xl font-bold mb-3 drop-shadow-lg">Eco-Friendly Products</h1>
@@ -122,6 +150,8 @@ const Products = () => {
             </p>
           </div>
         </div>
+        
+        {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
       </div>
