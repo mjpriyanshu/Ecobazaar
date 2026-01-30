@@ -36,6 +36,9 @@ public class User {
     @Column(nullable = false)
     private Boolean verified = true;
 
+    @Column(nullable = false)
+    private Boolean banned = false;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -102,5 +105,13 @@ public class User {
 
     public void setVerified(Boolean verified) {
         this.verified = verified;
+    }
+
+    public Boolean getBanned() {
+        return banned;
+    }
+
+    public void setBanned(Boolean banned) {
+        this.banned = banned;
     }
 }

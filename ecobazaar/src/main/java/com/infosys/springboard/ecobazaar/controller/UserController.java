@@ -44,6 +44,7 @@ public class UserController {
         profile.put("ecoScore", user.getEcoScore());
         profile.put("createdAt", user.getCreatedAt());
         profile.put("verified", user.getVerified());
+        profile.put("banned", user.getBanned());
         
         return profile;
     }
