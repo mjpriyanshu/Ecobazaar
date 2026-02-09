@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Package, CheckCircle, Clock, PlusCircle, Edit2, Trash2, BarChart3, Filter } from 'lucide-react';
-import Navbar from '../../components/Navbar';
+import Layout from '../../components/Layout';
 import ProductList from '../../features/products/ProductList';
 import { getMyProducts, deleteProduct } from '../../features/products/productAPI';
 import { STORAGE_KEYS, PRODUCT_CATEGORIES } from '../../utils/constants';
@@ -115,9 +115,7 @@ const SellerDashboard = () => {
   const categoryStats = getCategoryStats();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -417,7 +415,7 @@ const SellerDashboard = () => {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 };
 
