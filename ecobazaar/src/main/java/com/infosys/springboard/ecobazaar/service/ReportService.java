@@ -4,6 +4,7 @@ import com.infosys.springboard.ecobazaar.dto.SellerSalesReportDTO;
 import com.infosys.springboard.ecobazaar.dto.UserPurchaseReportDTO;
 import com.infosys.springboard.ecobazaar.entity.Order;
 import com.infosys.springboard.ecobazaar.entity.OrderItem;
+import com.infosys.springboard.ecobazaar.entity.Product;
 import com.infosys.springboard.ecobazaar.entity.User;
 import com.infosys.springboard.ecobazaar.repository.OrderRepository;
 import com.infosys.springboard.ecobazaar.repository.UserRepository;
@@ -92,12 +93,12 @@ public class ReportService {
                 totalCarbon = totalCarbon.add(item.getTotalCarbon());
                 
                 // Update category statistics
-                CategoryStats stats = categoryStatsMap.getOrDefault(category, new CategoryStats());
+                categoryStatsMap.putIfAbsent(category, new CategoryStats(category));
+                CategoryStats stats = categoryStatsMap.get(category);
                 stats.itemCount += item.getQuantity();
                 stats.totalSpent = stats.totalSpent.add(item.getSubtotal());
                 stats.totalCarbon = stats.totalCarbon.add(item.getTotalCarbon());
                 stats.orderIds.add(order.getId());
-                categoryStatsMap.put(category, stats);
                 
                 // Track eco rating counts and estimate carbon savings
                 switch (ecoRating) {
@@ -175,10 +176,28 @@ public class ReportService {
     
     // Helper class to track category statistics
     private static class CategoryStats {
+        String category;
         int itemCount = 0;
         BigDecimal totalSpent = BigDecimal.ZERO;
+        BigDecimal totalRevenue = BigDecimal.ZERO;
         BigDecimal totalCarbon = BigDecimal.ZERO;
         Set<Long> orderIds = new HashSet<>();
+        
+        CategoryStats(String category) {
+            this.category = category;
+        }
+    }
+    
+    // Helper class to track daily sales statistics
+    private static class DailySalesStats {
+        String date;
+        int itemsSold = 0;
+        BigDecimal revenue = BigDecimal.ZERO;
+        Set<Long> orderIds = new HashSet<>();
+        
+        DailySalesStats(String date) {
+            this.date = date;
+        }
     }
 
     /**
@@ -209,6 +228,18 @@ public class ReportService {
         BigDecimal totalCarbon = BigDecimal.ZERO;
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // Category tracking
+        Map<String, CategoryStats> categoryStatsMap = new HashMap<>();
+        
+        // Daily sales tracking
+        Map<String, DailySalesStats> dailySalesMap = new HashMap<>();
+        
+        // Carbon impact tracking
+        int ecoFriendlyCount = 0;
+        int moderateCount = 0;
+        int highImpactCount = 0;
 
         System.out.println("\n=== SELLER SALES REPORT GENERATION ===");
         System.out.println("Seller: " + seller.getName() + " (ID: " + sellerId + ")");
@@ -223,19 +254,26 @@ public class ReportService {
             for (OrderItem item : order.getOrderItems()) {
                 // Only include items that belong to THIS seller
                 if (item.getProduct().getSeller().getId().equals(sellerId)) {
-                    System.out.println("    ✓ Item belongs to seller: " + item.getProduct().getName() + 
+                    Product product = item.getProduct();
+                    String category = product.getCategory().toString();
+                    String ecoRating = product.getEcoRating().toString();
+                    
+                    System.out.println("    ✓ Item belongs to seller: " + product.getName() + 
                                      " (Qty: " + item.getQuantity() + ")");
 
-                    // Create sold item DTO
+                    // Create sold item DTO with enhanced fields
                     SellerSalesReportDTO.SoldItemDTO soldItem =
                             new SellerSalesReportDTO.SoldItemDTO(
-                                    item.getProduct().getName(),
+                                    product.getName(),
                                     item.getQuantity(),
                                     item.getPrice(),
                                     item.getSubtotal(),
                                     item.getCarbonImpact(),
                                     item.getTotalCarbon(),
-                                    order.getOrderDate().format(dateFormatter)
+                                    order.getOrderDate().format(dateFormatter),
+                                    category,
+                                    ecoRating,
+                                    order.getUser().getName()
                             );
 
                     report.getItemsSold().add(soldItem);
@@ -245,6 +283,35 @@ public class ReportService {
                     totalRevenue = totalRevenue.add(item.getSubtotal());
                     totalCarbon = totalCarbon.add(item.getTotalCarbon());
                     uniqueOrderIds.add(order.getId());
+                    
+                    // Update category stats
+                    categoryStatsMap.putIfAbsent(category, new CategoryStats(category));
+                    CategoryStats stats = categoryStatsMap.get(category);
+                    stats.itemCount += item.getQuantity();
+                    stats.totalRevenue = stats.totalRevenue.add(item.getSubtotal());
+                    stats.totalCarbon = stats.totalCarbon.add(item.getTotalCarbon());
+                    stats.orderIds.add(order.getId());
+                    
+                    // Update daily sales stats
+                    String dayKey = order.getOrderDate().format(dayFormatter);
+                    dailySalesMap.putIfAbsent(dayKey, new DailySalesStats(dayKey));
+                    DailySalesStats dailyStats = dailySalesMap.get(dayKey);
+                    dailyStats.itemsSold += item.getQuantity();
+                    dailyStats.revenue = dailyStats.revenue.add(item.getSubtotal());
+                    dailyStats.orderIds.add(order.getId());
+                    
+                    // Track eco ratings
+                    switch (ecoRating) {
+                        case "ECO_FRIENDLY":
+                            ecoFriendlyCount += item.getQuantity();
+                            break;
+                        case "MODERATE":
+                            moderateCount += item.getQuantity();
+                            break;
+                        case "HIGH_IMPACT":
+                            highImpactCount += item.getQuantity();
+                            break;
+                    }
                 } else {
                     System.out.println("    ✗ Item belongs to different seller: " + 
                                      item.getProduct().getName() + " (Seller ID: " + 
@@ -257,11 +324,71 @@ public class ReportService {
         report.setTotalItemsSold(totalItems);
         report.setTotalRevenue(totalRevenue);
         report.setTotalCarbonImpact(totalCarbon);
+        
+        // Build category breakdown
+        List<SellerSalesReportDTO.CategoryStatsDTO> categoryBreakdown = new ArrayList<>();
+        Map<String, BigDecimal> revenueByCategory = new HashMap<>();
+        
+        for (CategoryStats stats : categoryStatsMap.values()) {
+            categoryBreakdown.add(new SellerSalesReportDTO.CategoryStatsDTO(
+                stats.category,
+                stats.itemCount,
+                stats.totalRevenue,
+                stats.totalCarbon,
+                stats.orderIds.size()
+            ));
+            revenueByCategory.put(stats.category, stats.totalRevenue);
+        }
+        
+        report.setCategoryBreakdown(categoryBreakdown);
+        report.setRevenueByCategory(revenueByCategory);
+        
+        // Build carbon impact details
+        BigDecimal averageCarbon = totalItems > 0 
+            ? totalCarbon.divide(BigDecimal.valueOf(totalItems), 2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+        
+        // Estimate carbon saved (eco-friendly items typically save ~60% carbon vs high impact)
+        BigDecimal estimatedSaved = BigDecimal.valueOf(ecoFriendlyCount)
+            .multiply(averageCarbon)
+            .multiply(BigDecimal.valueOf(0.6));
+        
+        SellerSalesReportDTO.CarbonImpactDetailsDTO carbonDetails = 
+            new SellerSalesReportDTO.CarbonImpactDetailsDTO(
+                totalCarbon,
+                estimatedSaved,
+                averageCarbon,
+                ecoFriendlyCount,
+                moderateCount,
+                highImpactCount
+            );
+        
+        report.setCarbonImpactDetails(carbonDetails);
+        
+        // Build daily sales data
+        Map<String, SellerSalesReportDTO.DailySalesDTO> dailySalesData = new HashMap<>();
+        System.out.println("\n📊 Building Daily Sales Data:");
+        System.out.println("   Daily sales map size: " + dailySalesMap.size());
+        for (DailySalesStats dailyStats : dailySalesMap.values()) {
+            System.out.println("   Date: " + dailyStats.date + 
+                             " | Items: " + dailyStats.itemsSold + 
+                             " | Revenue: ₹" + dailyStats.revenue + 
+                             " | Orders: " + dailyStats.orderIds.size());
+            dailySalesData.put(dailyStats.date, new SellerSalesReportDTO.DailySalesDTO(
+                dailyStats.date,
+                dailyStats.itemsSold,
+                dailyStats.revenue,
+                dailyStats.orderIds.size()
+            ));
+        }
+        report.setDailySales(dailySalesData);
+        System.out.println("   Total daily sales records: " + dailySalesData.size());
 
         System.out.println("\n✅ SELLER SALES REPORT COMPLETED");
         System.out.println("   Total Orders: " + report.getTotalOrders());
         System.out.println("   Total Items Sold: " + report.getTotalItemsSold());
         System.out.println("   Total Revenue: ₹" + report.getTotalRevenue());
+        System.out.println("   Categories: " + categoryBreakdown.size());
         System.out.println("   Items in Report: " + report.getItemsSold().size());
         System.out.println("=====================================\n");
 

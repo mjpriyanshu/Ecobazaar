@@ -36,27 +36,31 @@ const formatCategoryName = (category) => {
   return categoryMap[category] || category;
 };
 
-export default function SpendingSummary({ categoryBreakdown, totalSpent }) {
+export default function SpendingSummary({ categoryBreakdown, totalSpent, title = 'Top 6 Categories by Spending', valueLabel = 'Amount' }) {
   if (!categoryBreakdown || categoryBreakdown.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-gray-500">
-        No spending data available
+        No data available
       </div>
     );
   }
 
+  // Determine if we're showing spending or revenue
+  const isRevenue = categoryBreakdown[0]?.totalRevenue !== undefined;
+  const valueField = isRevenue ? 'totalRevenue' : 'totalSpent';
+
   const sortedCategories = [...categoryBreakdown]
-    .sort((a, b) => parseFloat(b.totalSpent) - parseFloat(a.totalSpent))
+    .sort((a, b) => parseFloat(b[valueField]) - parseFloat(a[valueField]))
     .slice(0, 6);
 
   const data = {
     labels: sortedCategories.map(cat => formatCategoryName(cat.category)),
     datasets: [
       {
-        label: 'Amount (₹)',
-        data: sortedCategories.map(cat => parseFloat(cat.totalSpent)),
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-        borderColor: 'rgb(59, 130, 246)',
+        label: `${valueLabel} (₹)`,
+        data: sortedCategories.map(cat => parseFloat(cat[valueField])),
+        backgroundColor: isRevenue ? 'rgba(16, 185, 129, 0.8)' : 'rgba(59, 130, 246, 0.8)',
+        borderColor: isRevenue ? 'rgb(16, 185, 129)' : 'rgb(59, 130, 246)',
         borderWidth: 2
       }
     ]
@@ -74,7 +78,7 @@ export default function SpendingSummary({ categoryBreakdown, totalSpent }) {
           label: function(context) {
             const cat = sortedCategories[context.dataIndex];
             return [
-              `Amount: ₹${context.parsed.y.toFixed(2)}`,
+              `${valueLabel}: ₹${context.parsed.y.toFixed(2)}`,
               `Items: ${cat.itemCount}`
             ];
           }
@@ -99,8 +103,11 @@ export default function SpendingSummary({ categoryBreakdown, totalSpent }) {
   };
 
   return (
-    <div className="h-80">
-      <Bar data={data} options={options} />
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">{title}</h3>
+      <div className="h-64">
+        <Bar data={data} options={options} />
+      </div>
     </div>
   );
 }

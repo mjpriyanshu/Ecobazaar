@@ -425,13 +425,12 @@ export default function MonthlyReport() {
 
                 {/* Row 3: Spending Breakdown */}
                 <div className="grid grid-cols-1 gap-6">
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Spending Breakdown</h3>
-                    <SpendingSummary 
-                      categoryBreakdown={report.categoryBreakdown} 
-                      totalSpent={report.totalSpent}
-                    />
-                  </div>
+                  <SpendingSummary 
+                    categoryBreakdown={report.categoryBreakdown} 
+                    totalSpent={report.totalSpent}
+                    title="Spending Breakdown"
+                    valueLabel="Spending"
+                  />
                 </div>
               </div>
             ) : (

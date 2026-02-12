@@ -70,7 +70,7 @@ export default function CategoryPurchaseChart({ categoryBreakdown, type = 'items
       case 'items':
         return cat.itemCount || 0;
       case 'spending':
-        return parseFloat(cat.totalSpent || 0);
+        return parseFloat(cat.totalSpent || cat.totalRevenue || 0);
       case 'carbon':
         return parseFloat(cat.totalCarbonEmitted || 0);
       default:
@@ -81,9 +81,10 @@ export default function CategoryPurchaseChart({ categoryBreakdown, type = 'items
   const getLabel = () => {
     switch (type) {
       case 'items':
-        return 'Items Purchased';
+        return 'Items';
       case 'spending':
-        return 'Amount Spent (₹)';
+        // Check if we have totalSpent or totalRevenue
+        return categoryBreakdown[0]?.totalSpent !== undefined ? 'Amount Spent (₹)' : 'Revenue Earned (₹)';
       case 'carbon':
         return 'Carbon Emitted (kg CO₂)';
       default:
@@ -139,8 +140,10 @@ export default function CategoryPurchaseChart({ categoryBreakdown, type = 'items
     }
   };
 
-  const title = type === 'items' ? 'Items by Category' 
-    : type === 'spending' ? 'Spending by Category' 
+  const title = type === 'items' 
+    ? (categoryBreakdown[0]?.totalSpent !== undefined ? 'Items Purchased by Category' : 'Items Sold by Category')
+    : type === 'spending' 
+    ? (categoryBreakdown[0]?.totalSpent !== undefined ? 'Spending by Category' : 'Revenue by Category')
     : 'Carbon Emissions by Category';
 
   return (
