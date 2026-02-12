@@ -1,76 +1,31 @@
 import axiosInstance from './axiosInstance';
 
 /**
- * Get user monthly report with AI insights
+ * Get user purchase report - items BOUGHT by user
  */
-export const getUserMonthlyReport = async (userId, month) => {
+export const getUserPurchaseReport = async (userId, month) => {
   const response = await axiosInstance.get(
-    `/reports/user/${userId}/monthly`,
+    `/api/reports/user/${userId}/purchases`,
     { params: { month } }
   );
   return response.data;
 };
 
 /**
- * Get user monthly raw data (without AI)
+ * Get seller sales report - items SOLD by seller
  */
-export const getUserMonthlySummaryRaw = async (userId, month) => {
+export const getSellerSalesReport = async (sellerId, month) => {
   const response = await axiosInstance.get(
-    `/reports/user/${userId}/monthly/raw`,
+    `/api/reports/seller/${sellerId}/sales`,
     { params: { month } }
   );
   return response.data;
-};
-
-/**
- * Get seller monthly report with AI insights
- */
-export const getSellerMonthlyReport = async (sellerId, month) => {
-  const response = await axiosInstance.get(
-    `/reports/seller/${sellerId}/monthly`,
-    { params: { month } }
-  );
-  return response.data;
-};
-
-/**
- * Get seller monthly raw data (without AI)
- */
-export const getSellerMonthlySummaryRaw = async (sellerId, month) => {
-  const response = await axiosInstance.get(
-    `/reports/seller/${sellerId}/monthly/raw`,
-    { params: { month } }
-  );
-  return response.data;
-};
-
-/**
- * Download user monthly report as PDF
- */
-export const downloadUserReport = async (userId, month) => {
-  const response = await axiosInstance.get(
-    `/reports/user/${userId}/monthly/download`,
-    {
-      params: { month },
-      responseType: 'blob'
-    }
-  );
-
-  // Create download link
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `carbon-report-${month || 'current'}.pdf`);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
 };
 
 /**
  * Check reports service health
  */
 export const checkReportsHealth = async () => {
-  const response = await axiosInstance.get('/reports/health');
+  const response = await axiosInstance.get('/api/reports/health');
   return response.data;
 };
