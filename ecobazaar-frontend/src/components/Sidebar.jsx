@@ -68,11 +68,18 @@ const Sidebar = ({ isOpen, onClose, user }) => {
             <span className="font-medium">My Orders</span>
           </Link>
 
-          {/* Monthly Report */}
-          <Link to="/monthly-report" className={linkClass('/monthly-report')} onClick={onClose}>
-            <BarChart3 size={20} />
-            <span className="font-medium">Eco Report</span>
-          </Link>
+          {/* Monthly Report - conditional based on user role */}
+          {user.role === 'SELLER' ? (
+            <Link to="/seller/report" className={linkClass('/seller/report')} onClick={onClose}>
+              <BarChart3 size={20} />
+              <span className="font-medium">Sales Report</span>
+            </Link>
+          ) : (
+            <Link to="/monthly-report" className={linkClass('/monthly-report')} onClick={onClose}>
+              <BarChart3 size={20} />
+              <span className="font-medium">Eco Report</span>
+            </Link>
+          )}
 
           {/* Seller Section */}
           {user.role === 'SELLER' && (

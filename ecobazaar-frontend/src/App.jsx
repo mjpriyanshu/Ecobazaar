@@ -13,6 +13,7 @@ import Checkout from './pages/Checkout'
 import Orders from './pages/Orders'
 import SellerOrders from './pages/SellerOrders'
 import MonthlyReport from './pages/MonthlyReport'
+import SellerReport from './pages/SellerReport'
 import SellerDashboard from './features/seller/SellerDashboard'
 import ProductForm from './features/seller/ProductForm'
 import AdminDashboard from './features/admin/AdminDashboard'
@@ -46,6 +47,7 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/seller/orders" element={<SellerOrders />} />
         <Route path="/monthly-report" element={<MonthlyReport />} />
+        <Route path="/seller/report" element={<SellerReport />} />
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/product/new" element={<ProductForm />} />
         <Route path="/seller/product/edit/:id" element={<ProductForm />} />

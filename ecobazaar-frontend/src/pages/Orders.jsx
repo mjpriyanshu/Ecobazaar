@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import EcoRatingBadge from '../components/EcoRatingBadge';
 import CarbonBadge from '../components/CarbonBadge';
-import { Package, Calendar, DollarSign, Leaf, XCircle, CheckCircle, Clock, Truck, Ban, RotateCcw, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Calendar, DollarSign, XCircle, CheckCircle, Clock, Truck, Ban, RotateCcw, AlertTriangle, ChevronLeft, ChevronRight, Award, Trophy, Info } from 'lucide-react';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -16,6 +16,7 @@ const Orders = () => {
   const [returnReason, setReturnReason] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage, setOrdersPerPage] = useState(5);
+  const [showEcoCalculation, setShowEcoCalculation] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -140,6 +141,54 @@ const Orders = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  // Calculate eco score for an order (matches backend logic)
+  const calculateOrderEcoScore = (order) => {
+    // Only calculate for DELIVERED orders
+    if (order.status !== 'DELIVERED') {
+      return null;
+    }
+
+    let score = 10; // Base points per order
+
+    // Convert eco rating to score
+    const convertEcoRatingToScore = (ecoRating) => {
+      switch (ecoRating) {
+        case 'ECO_FRIENDLY': return 5;
+        case 'MODERATE': return 3;
+        case 'HIGH_IMPACT': return 1;
+        default: return 2;
+      }
+    };
+
+    let avgEcoRatingScore = 0;
+    let avgCarbon = 0;
+    let ecoCertifiedCount = 0;
+
+    order.orderItems.forEach(item => {
+      avgEcoRatingScore += convertEcoRatingToScore(item.product.ecoRating) * item.quantity;
+      avgCarbon += item.totalCarbon;
+      if (item.product.ecoCertified) {
+        ecoCertifiedCount += item.quantity;
+      }
+    });
+
+    avgEcoRatingScore = avgEcoRatingScore / order.totalItems;
+    avgCarbon = avgCarbon / order.totalItems;
+
+    // Eco rating bonus (max 25 points)
+    score += Math.floor(avgEcoRatingScore * 5);
+
+    // Carbon reduction bonus (20 points if avg < 5kg per item)
+    if (avgCarbon < 5.0) {
+      score += 20;
+    }
+
+    // Eco-certified bonus (15 points per certified product)
+    score += ecoCertifiedCount * 15;
+
+    return score;
   };
 
   if (loading) {
@@ -290,10 +339,6 @@ const Orders = () => {
                               ₹{item.subtotal.toFixed(2)}
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
-                            <Leaf className="w-3 h-3" />
-                            {item.totalCarbon.toFixed(2)} kg CO₂
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -307,14 +352,87 @@ const Orders = () => {
                           <Package className="w-4 h-4" />
                           <span>{order.totalItems} {order.totalItems === 1 ? 'item' : 'items'}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Leaf className="w-4 h-4 text-green-600" />
-                          <span className="font-medium">Total Carbon:</span>
-                          <span className="text-orange-600 font-semibold">{order.totalCarbon.toFixed(2)} kg CO₂</span>
-                        </div>
+                        {calculateOrderEcoScore(order) !== null && (
+                          <div className="flex items-center gap-2 text-gray-600 relative">
+                            <Trophy className="w-4 h-4 text-yellow-600" />
+                            <span className="font-medium">Eco Points Earned:</span>
+                            <span className="text-green-600 font-semibold">
+                              +{calculateOrderEcoScore(order)}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEcoCalculation(prev => ({...prev, [order.id]: !prev[order.id]}));
+                              }}
+                              className="ml-1 text-blue-500 hover:text-blue-700 transition"
+                              title="View calculation details"
+                            >
+                              <Info className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Calculation Details Tooltip */}
+                            {showEcoCalculation[order.id] && (
+                              <div className="absolute top-full left-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-10 w-96 text-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                  <h4 className="font-bold text-gray-900">Eco Points Calculation</h4>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setShowEcoCalculation(prev => ({...prev, [order.id]: false}));
+                                    }}
+                                    className="text-gray-500 hover:text-gray-700"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                                <div className="space-y-2 text-gray-700">
+                                  <div className="flex justify-between border-b pb-1">
+                                    <span>Base Points (per order):</span>
+                                    <span className="font-semibold">+10</span>
+                                  </div>
+                                  <div className="flex justify-between border-b pb-1">
+                                    <span>Eco Rating Bonus:</span>
+                                    <span className="font-semibold">
+                                      +{(() => {
+                                        let avgScore = 0;
+                                        order.orderItems.forEach(item => {
+                                          const score = item.product.ecoRating === 'ECO_FRIENDLY' ? 5 : 
+                                                       item.product.ecoRating === 'MODERATE' ? 3 : 1;
+                                          avgScore += score * item.quantity;
+                                        });
+                                        avgScore = avgScore / order.totalItems;
+                                        return Math.floor(avgScore * 5);
+                                      })()}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between border-b pb-1">
+                                    <span>Carbon Reduction Bonus:</span>
+                                    <span className="font-semibold">
+                                      {(order.totalCarbon / order.totalItems) < 5 ? '+20' : '+0'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between border-b pb-1">
+                                    <span>Eco-Certified Products:</span>
+                                    <span className="font-semibold">
+                                      +{order.orderItems.reduce((sum, item) => 
+                                        sum + (item.product.ecoCertified ? item.quantity * 15 : 0), 0
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between pt-2 font-bold text-green-600">
+                                    <span>Total Points:</span>
+                                    <span>+{calculateOrderEcoScore(order)}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-gray-600">
+                                  <strong>Note:</strong> Points are awarded only when order is delivered.
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-lg font-bold">
-                        <DollarSign className="w-5 h-5 text-green-600" />
                         <span>Total: ₹{order.totalPrice.toFixed(2)}</span>
                       </div>
                     </div>

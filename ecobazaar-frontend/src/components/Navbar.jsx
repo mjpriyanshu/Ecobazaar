@@ -169,14 +169,26 @@ const Navbar = () => {
                           <span className="font-medium">My Orders</span>
                         </Link>
 
-                        <Link
-                          to="/monthly-report"
-                          onClick={closeDropdown}
-                          className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
-                        >
-                          <BarChart3 size={18} />
-                          <span className="font-medium">Eco Report</span>
-                        </Link>
+                        {/* Monthly Report - conditional based on user role */}
+                        {user.role === 'SELLER' ? (
+                          <Link
+                            to="/seller/report"
+                            onClick={closeDropdown}
+                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+                          >
+                            <BarChart3 size={18} />
+                            <span className="font-medium">Sales Report</span>
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/monthly-report"
+                            onClick={closeDropdown}
+                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+                          >
+                            <BarChart3 size={18} />
+                            <span className="font-medium">Eco Report</span>
+                          </Link>
+                        )}
 
                         {/* Seller Section */}
                         {user.role === 'SELLER' && (
