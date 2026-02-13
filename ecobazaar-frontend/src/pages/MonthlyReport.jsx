@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, ShoppingBag, Award, Sparkles, PieChart, DollarSign, Download, Leaf } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Award, Sparkles, PieChart, DollarSign, Download, Leaf, Wand2, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Layout from '../components/Layout';
@@ -8,7 +8,7 @@ import MonthSelector from '../components/MonthSelector';
 import CategoryPurchaseChart from '../components/CategoryPurchaseChart';
 import CarbonImpactSummary from '../components/CarbonImpactSummary';
 import SpendingSummary from '../components/SpendingSummary';
-import { getUserPurchaseReport } from '../services/reportAPI';
+import { getUserPurchaseReport, generateAISummary } from '../services/reportAPI';
 import { STORAGE_KEYS } from '../utils/constants';
 
 export default function MonthlyReport() {
@@ -17,6 +17,9 @@ export default function MonthlyReport() {
   const [error, setError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [aiError, setAiError] = useState(null);
   const reportRef = useRef(null);
 
   // Get current month in YYYY-MM format
@@ -63,6 +66,38 @@ export default function MonthlyReport() {
 
   const handleMonthChange = (month) => {
     setSelectedMonth(month);
+    setAiSummary(''); // Reset AI summary when month changes
+  };
+
+  const handleGenerateAISummary = async () => {
+    if (!report) return;
+
+    try {
+      setLoadingAI(true);
+      setAiError(null);
+
+      // Get user ID from localStorage
+      const userStr = localStorage.getItem(STORAGE_KEYS.USER);
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || localStorage.getItem('userId');
+
+      if (!userId) {
+        throw new Error('User not logged in.');
+      }
+
+      const response = await generateAISummary(userId, selectedMonth);
+      
+      if (response.status === 'success') {
+        setAiSummary(response.summary);
+      } else {
+        setAiError(response.error || 'Failed to generate AI summary');
+      }
+    } catch (err) {
+      console.error('Error generating AI summary:', err);
+      setAiError(err.response?.data?.message || err.message || 'Failed to generate AI summary');
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   const generatePDF = async () => {
@@ -97,6 +132,8 @@ export default function MonthlyReport() {
         .bg-blue-100 { background-color: rgb(219, 234, 254) !important; }
         .bg-green-50 { background-color: rgb(240, 253, 244) !important; }
         .bg-red-50 { background-color: rgb(254, 242, 242) !important; }
+        .bg-purple-50 { background-color: rgb(250, 245, 255) !important; }
+        .bg-purple-100 { background-color: rgb(243, 232, 255) !important; }
         .text-gray-500 { color: rgb(107, 114, 128) !important; }
         .text-gray-600 { color: rgb(75, 85, 99) !important; }
         .text-gray-700 { color: rgb(55, 65, 81) !important; }
@@ -111,11 +148,36 @@ export default function MonthlyReport() {
         .text-red-700 { color: rgb(185, 28, 28) !important; }
         .text-yellow-600 { color: rgb(202, 138, 4) !important; }
         .text-purple-600 { color: rgb(147, 51, 234) !important; }
+        .text-purple-700 { color: rgb(126, 34, 206) !important; }
         .border-gray-200 { border-color: rgb(229, 231, 235) !important; }
         .border-blue-200 { border-color: rgb(191, 219, 254) !important; }
         .border-green-200 { border-color: rgb(187, 247, 208) !important; }
         .border-red-200 { border-color: rgb(254, 202, 202) !important; }
+        .border-purple-200 { border-color: rgb(233, 213, 255) !important; }
         .divide-gray-200 > * { border-color: rgb(229, 231, 235) !important; }
+        
+        /* Override gradient backgrounds with solid colors for PDF compatibility */
+        .bg-gradient-to-br,
+        .bg-gradient-to-r,
+        .bg-gradient-to-l,
+        .bg-gradient-to-t,
+        .bg-gradient-to-b {
+          background-image: none !important;
+          background: rgb(250, 245, 255) !important;
+        }
+        .from-purple-50.to-blue-50 {
+          background: rgb(245, 243, 255) !important;
+        }
+        .from-purple-600.to-blue-600 {
+          background: rgb(147, 51, 234) !important;
+        }
+        .from-purple-700.to-blue-700 {
+          background: rgb(126, 34, 206) !important;
+        }
+        .bg-white\/50 {
+          background-color: rgb(255, 255, 255) !important;
+          opacity: 0.9 !important;
+        }
         
         /* Add padding and spacing for better PDF rendering */
         table { width: 100% !important; border-collapse: collapse !important; }
@@ -179,6 +241,9 @@ export default function MonthlyReport() {
         }
       `;
       document.head.appendChild(style);
+      
+      // Wait for styles to be applied before rendering
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Configure html2canvas options for better quality
       const canvas = await html2canvas(element, {
@@ -515,6 +580,107 @@ export default function MonthlyReport() {
                   <p className="text-gray-600">No items purchased this month.</p>
                 </div>
               )}
+            </div>
+
+            {/* AI-Powered Insights Section */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-md overflow-hidden mt-6">
+              <div className="p-6 border-b border-purple-200 bg-white/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Wand2 size={24} className="text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">AI-Powered Insights</h3>
+                      <p className="text-sm text-gray-600">
+                        Get personalized analysis of your shopping behavior powered by Gemini AI
+                      </p>
+                    </div>
+                  </div>
+                  {!aiSummary && (
+                    <button
+                      onClick={handleGenerateAISummary}
+                      disabled={loadingAI}
+                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingAI ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 size={18} />
+                          Generate AI Summary
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6">
+                {loadingAI && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 size={48} className="text-purple-600 animate-spin mb-4" />
+                    <p className="text-gray-600 text-lg">Analyzing your shopping data...</p>
+                    <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+                  </div>
+                )}
+
+                {aiError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-700">
+                      <strong>Error:</strong> {aiError}
+                    </p>
+                    <button
+                      onClick={handleGenerateAISummary}
+                      className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
+
+                {aiSummary && !loadingAI && (
+                  <div className="bg-white rounded-lg border border-purple-200 shadow-sm">
+                    <div className="p-6">
+                      <div className="w-full overflow-auto">
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words text-base">
+                          {aiSummary}
+                        </div>
+                      </div>
+                      <div className="mt-6 pt-6 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Sparkles size={16} className="text-purple-500" />
+                          <span>Generated by Gemini 2.5 Flash</span>
+                        </div>
+                        <button
+                          onClick={handleGenerateAISummary}
+                          className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                        >
+                          <Wand2 size={16} />
+                          Regenerate
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!aiSummary && !loadingAI && !aiError && (
+                  <div className="text-center py-8">
+                    <div className="mb-4">
+                      <Wand2 size={48} className="text-purple-400 mx-auto mb-3" />
+                    </div>
+                    <p className="text-gray-600 mb-2">
+                      Click the button above to get personalized insights about your shopping habits
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Our AI will analyze your purchases, carbon impact, and provide recommendations
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
