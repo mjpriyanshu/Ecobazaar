@@ -20,7 +20,76 @@ export default function MonthlyReport() {
   const [aiSummary, setAiSummary] = useState('');
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiError, setAiError] = useState(null);
+  const [isAICached, setIsAICached] = useState(false);
   const reportRef = useRef(null);
+
+  // AI Report Cache Management
+  const AI_CACHE_KEY = 'ecobazaar_ai_reports';
+  const MAX_CACHED_REPORTS = 2;
+
+  const getAICacheKey = (userId, month) => `${userId}_${month}`;
+
+  const loadCachedAIReport = (userId, month) => {
+    try {
+      const cacheStr = localStorage.getItem(AI_CACHE_KEY);
+      if (!cacheStr) return null;
+
+      const cache = JSON.parse(cacheStr);
+      const key = getAICacheKey(userId, month);
+      
+      return cache[key] || null;
+    } catch (err) {
+      console.error('Error loading cached AI report:', err);
+      return null;
+    }
+  };
+
+  const saveCachedAIReport = (userId, month, summary) => {
+    try {
+      const cacheStr = localStorage.getItem(AI_CACHE_KEY);
+      let cache = cacheStr ? JSON.parse(cacheStr) : {};
+
+      const key = getAICacheKey(userId, month);
+      
+      // Add new report with timestamp
+      cache[key] = {
+        summary,
+        timestamp: Date.now(),
+        userId,
+        month
+      };
+
+      // Keep only the last MAX_CACHED_REPORTS reports
+      const entries = Object.entries(cache)
+        .sort((a, b) => b[1].timestamp - a[1].timestamp)
+        .slice(0, MAX_CACHED_REPORTS);
+
+      cache = Object.fromEntries(entries);
+
+      localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache));
+    } catch (err) {
+      console.error('Error saving cached AI report:', err);
+    }
+  };
+
+  const clearOldAICache = () => {
+    try {
+      const cacheStr = localStorage.getItem(AI_CACHE_KEY);
+      if (!cacheStr) return;
+
+      const cache = JSON.parse(cacheStr);
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+
+      // Remove entries older than 30 days
+      const filteredCache = Object.fromEntries(
+        Object.entries(cache).filter(([_, value]) => value.timestamp > thirtyDaysAgo)
+      );
+
+      localStorage.setItem(AI_CACHE_KEY, JSON.stringify(filteredCache));
+    } catch (err) {
+      console.error('Error clearing old AI cache:', err);
+    }
+  };
 
   // Get current month in YYYY-MM format
   const getCurrentMonth = () => {
@@ -29,9 +98,10 @@ export default function MonthlyReport() {
   };
 
   useEffect(() => {
-    // Set default month
+    // Set default month and clear old cache on mount
     const currentMonth = getCurrentMonth();
     setSelectedMonth(currentMonth);
+    clearOldAICache();
   }, []);
 
   useEffect(() => {
@@ -53,6 +123,17 @@ export default function MonthlyReport() {
 
         const data = await getUserPurchaseReport(userId, selectedMonth);
         setReport(data);
+
+        // Try to load cached AI report for this month
+        const cachedReport = loadCachedAIReport(userId, selectedMonth);
+        if (cachedReport) {
+          setAiSummary(cachedReport.summary);
+          setAiError(null);
+          setIsAICached(true);
+        } else {
+          setAiSummary('');
+          setIsAICached(false);
+        }
       } catch (err) {
         console.error('Error fetching report:', err);
         setError(err.response?.data?.message || err.message || 'Failed to load report');
@@ -66,7 +147,7 @@ export default function MonthlyReport() {
 
   const handleMonthChange = (month) => {
     setSelectedMonth(month);
-    setAiSummary(''); // Reset AI summary when month changes
+    // AI summary will be loaded from cache in useEffect if available
   };
 
   const handleGenerateAISummary = async () => {
@@ -89,6 +170,9 @@ export default function MonthlyReport() {
       
       if (response.status === 'success') {
         setAiSummary(response.summary);
+        setIsAICached(false); // Mark as freshly generated
+        // Save to cache for future use
+        saveCachedAIReport(userId, selectedMonth, response.summary);
       } else {
         setAiError(response.error || 'Failed to generate AI summary');
       }
@@ -594,6 +678,7 @@ export default function MonthlyReport() {
                       <h3 className="text-xl font-bold text-gray-800">AI-Powered Insights</h3>
                       <p className="text-sm text-gray-600">
                         Get personalized analysis of your shopping behavior powered by Gemini AI
+                        {isAICached && <span className="ml-1 text-blue-600">(Report loaded from cache)</span>}
                       </p>
                     </div>
                   </div>
@@ -651,9 +736,16 @@ export default function MonthlyReport() {
                         </div>
                       </div>
                       <div className="mt-6 pt-6 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Sparkles size={16} className="text-purple-500" />
-                          <span>Generated by Gemini 2.5 Flash</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Sparkles size={16} className="text-purple-500" />
+                            <span>Generated by Gemini 2.5 Flash</span>
+                          </div>
+                          {isAICached && (
+                            <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700">
+                              <span className="font-medium">📦 Cached</span>
+                            </div>
+                          )}
                         </div>
                         <button
                           onClick={handleGenerateAISummary}
