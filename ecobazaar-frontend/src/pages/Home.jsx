@@ -34,8 +34,8 @@ export default function Home() {
 
       {/* Hero Section */}
       <section 
-        className="text-white py-20 bg-cover bg-no-repeat"
-        style={{ backgroundImage: "url('/img_assets/main_bg.jpg')" }}
+        className="text-white py-20 bg-no-repeat bg-fixed bg-center"
+        style={{ backgroundImage: "url('/img_assets/main_bg.jpg')", backgroundSize: 'cover' }}
       >
         <div className="max-w-7xl mx-auto px-4 text-center py-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>
