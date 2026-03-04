@@ -57,29 +57,25 @@ export const truncateText = (text, maxLength = 100) => {
 /**
  * Get default product image if none provided
  * Maps to available images in public/img_assets/
+ * IMPORTANT: Always returns a fallback image if no URL is provided
  */
 export const getProductImageUrl = (imageUrl, category = null) => {
   // If imageUrl is provided and valid, use it
-  if (imageUrl && imageUrl.trim()) {
+  if (imageUrl && imageUrl.trim() && imageUrl !== 'null' && imageUrl !== 'undefined') {
     return imageUrl;
   }
   
-  // Available images in public/img_assets/
+  // Available images in public/img_assets/ mapped to categories
   const categoryImageMap = {
     'BEAUTY': '/img_assets/bambbrush.jpg',
     'CLOTHING': '/img_assets/Tshirt.jpg',
     'HOME_GARDEN': '/img_assets/cuttinboard.jpg',
     'FOOD': '/img_assets/bottle.jpg',
-    'HEALTH': '/img_assets/bottle.jpg',
-    'SPORTS': '/img_assets/bottle.jpg',
-    'ELECTRONICS': '/img_assets/Tshirt.jpg', // Use t-shirt as fallback
+    'HEALTH': '/img_assets/default_placeholder.jpg',
+    'SPORTS': '/img_assets/outdoor1.jpg',
+    'ELECTRONICS': '/img_assets/Laptop.jpg',
   };
   
-  // Return category-specific image if available
-  if (category && categoryImageMap[category]) {
-    return categoryImageMap[category];
-  }
-  
-  // Default fallback - use bottle image as it's most generic
-  return '/img_assets/bottle.jpg';
+  // Return category-specific image if available, otherwise default placeholder (mandatory)
+  return categoryImageMap[category] || '/img_assets/default_placeholder.jpg';
 };

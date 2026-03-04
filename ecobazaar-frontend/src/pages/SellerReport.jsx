@@ -63,10 +63,6 @@ export default function SellerReport() {
         }
 
         const data = await getSellerSalesReport(sellerId, selectedMonth);
-        console.log('Seller Report Data:', data);
-        console.log('Category Breakdown:', data.categoryBreakdown);
-        console.log('Revenue by Category:', data.revenueByCategory);
-        console.log('Daily Sales:', data.dailySales);
         setReport(data);
       } catch (err) {
         console.error('Error fetching seller report:', err);

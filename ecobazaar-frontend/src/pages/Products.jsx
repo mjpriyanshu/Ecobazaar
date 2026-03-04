@@ -62,11 +62,28 @@ const Products = () => {
 
     // Apply search filter first if search term exists
     if (currentSearchTerm && currentSearchTerm.trim()) {
-      const searchLower = currentSearchTerm.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(searchLower) || 
-        (p.description && p.description.toLowerCase().includes(searchLower))
-      );
+      const searchLower = currentSearchTerm.toLowerCase().trim();
+      // Normalize search term by removing special characters for flexible matching
+      const normalizedSearch = searchLower.replace(/[^a-z0-9]/g, '');
+      
+      filtered = filtered.filter(p => {
+        // Standard search (exact substring match)
+        const nameMatch = p.name && p.name.toLowerCase().includes(searchLower);
+        const descMatch = p.description && p.description.toLowerCase().includes(searchLower);
+        const catMatch = p.category && p.category.toLowerCase().includes(searchLower);
+        
+        // Normalized search (ignores hyphens, spaces, special chars)
+        const nameNormalized = p.name ? p.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        const descNormalized = p.description ? p.description.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        const catNormalized = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        
+        const nameNormalizedMatch = nameNormalized.includes(normalizedSearch);
+        const descNormalizedMatch = descNormalized.includes(normalizedSearch);
+        const catNormalizedMatch = catNormalized.includes(normalizedSearch);
+        
+        return nameMatch || descMatch || catMatch || 
+               nameNormalizedMatch || descNormalizedMatch || catNormalizedMatch;
+      });
     }
 
     // Category filter

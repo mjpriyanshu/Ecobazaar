@@ -168,9 +168,6 @@ public class GeminiAIService {
      */
     private String parseGeminiResponse(String jsonResponse) {
         try {
-            System.out.println("=== GEMINI API RESPONSE ===");
-            System.out.println(jsonResponse);
-            System.out.println("===========================");
             
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode candidates = root.path("candidates");
@@ -198,7 +195,6 @@ public class GeminiAIService {
                     }
                     
                     String result = fullText.toString();
-                    System.out.println("=== EXTRACTED TEXT LENGTH: " + result.length() + " ===");
                     return result;
                 }
             }

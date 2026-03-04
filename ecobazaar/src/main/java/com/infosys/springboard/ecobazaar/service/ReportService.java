@@ -163,14 +163,6 @@ public class ReportService {
         }
         report.setCarbonImpactDetails(carbonDetails);
 
-        System.out.println("✅ USER PURCHASE REPORT GENERATED");
-        System.out.println("   User: " + user.getName());
-        System.out.println("   Month: " + month);
-        System.out.println("   Total Orders: " + report.getTotalOrders());
-        System.out.println("   Total Items Bought: " + report.getTotalItemsBought());
-        System.out.println("   Total Spent: ₹" + report.getTotalSpent());
-        System.out.println("   Categories: " + categoryBreakdown.size());
-
         return report;
     }
     
@@ -241,15 +233,7 @@ public class ReportService {
         int moderateCount = 0;
         int highImpactCount = 0;
 
-        System.out.println("\n=== SELLER SALES REPORT GENERATION ===");
-        System.out.println("Seller: " + seller.getName() + " (ID: " + sellerId + ")");
-        System.out.println("Month: " + month);
-        System.out.println("Orders found: " + orders.size());
-
         for (Order order : orders) {
-            System.out.println("\n  Processing Order #" + order.getId());
-            System.out.println("  Order Date: " + order.getOrderDate());
-            System.out.println("  Order Items: " + order.getOrderItems().size());
 
             for (OrderItem item : order.getOrderItems()) {
                 // Only include items that belong to THIS seller
@@ -257,9 +241,6 @@ public class ReportService {
                     Product product = item.getProduct();
                     String category = product.getCategory().toString();
                     String ecoRating = product.getEcoRating().toString();
-                    
-                    System.out.println("    ✓ Item belongs to seller: " + product.getName() + 
-                                     " (Qty: " + item.getQuantity() + ")");
 
                     // Create sold item DTO with enhanced fields
                     SellerSalesReportDTO.SoldItemDTO soldItem =
@@ -312,10 +293,6 @@ public class ReportService {
                             highImpactCount += item.getQuantity();
                             break;
                     }
-                } else {
-                    System.out.println("    ✗ Item belongs to different seller: " + 
-                                     item.getProduct().getName() + " (Seller ID: " + 
-                                     item.getProduct().getSeller().getId() + ")");
                 }
             }
         }
@@ -367,13 +344,7 @@ public class ReportService {
         
         // Build daily sales data
         Map<String, SellerSalesReportDTO.DailySalesDTO> dailySalesData = new HashMap<>();
-        System.out.println("\n📊 Building Daily Sales Data:");
-        System.out.println("   Daily sales map size: " + dailySalesMap.size());
         for (DailySalesStats dailyStats : dailySalesMap.values()) {
-            System.out.println("   Date: " + dailyStats.date + 
-                             " | Items: " + dailyStats.itemsSold + 
-                             " | Revenue: ₹" + dailyStats.revenue + 
-                             " | Orders: " + dailyStats.orderIds.size());
             dailySalesData.put(dailyStats.date, new SellerSalesReportDTO.DailySalesDTO(
                 dailyStats.date,
                 dailyStats.itemsSold,
@@ -382,15 +353,6 @@ public class ReportService {
             ));
         }
         report.setDailySales(dailySalesData);
-        System.out.println("   Total daily sales records: " + dailySalesData.size());
-
-        System.out.println("\n✅ SELLER SALES REPORT COMPLETED");
-        System.out.println("   Total Orders: " + report.getTotalOrders());
-        System.out.println("   Total Items Sold: " + report.getTotalItemsSold());
-        System.out.println("   Total Revenue: ₹" + report.getTotalRevenue());
-        System.out.println("   Categories: " + categoryBreakdown.size());
-        System.out.println("   Items in Report: " + report.getItemsSold().size());
-        System.out.println("=====================================\n");
 
         return report;
     }
