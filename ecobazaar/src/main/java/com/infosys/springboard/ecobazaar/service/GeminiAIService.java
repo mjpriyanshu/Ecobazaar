@@ -6,6 +6,7 @@ import com.infosys.springboard.ecobazaar.dto.UserPurchaseReportDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 
 import java.math.BigDecimal;
@@ -22,6 +23,9 @@ public class GeminiAIService {
     @Value("${ai.api.key}")
     private String apiKey;
 
+    @Value("${ai.api.model:gemini-2.5-flash}")
+    private String model;
+
     public GeminiAIService(WebClient.Builder webClientBuilder, ObjectMapper objectMapper) {
         this.webClient = webClientBuilder
                 .baseUrl("https://generativelanguage.googleapis.com")
@@ -36,13 +40,14 @@ public class GeminiAIService {
      * Generate AI-powered summary for user purchase report
      */
     public String generatePurchaseReportSummary(UserPurchaseReportDTO report) {
-        try {
-            String prompt = buildPurchaseReportPrompt(report);
-            return callGeminiAPI(prompt);
-        } catch (Exception e) {
-            System.err.println("Error generating AI summary: " + e.getMessage());
-            return "Unable to generate AI summary at this time. Please try again later.";
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "Missing Gemini API key. Set GEMINI_API_KEY env var or add ai.api.key in application-local.properties"
+            );
         }
+
+        String prompt = buildPurchaseReportPrompt(report);
+        return callGeminiAPI(prompt);
     }
 
     /**
@@ -144,10 +149,11 @@ public class GeminiAIService {
             generationConfig.put("maxOutputTokens", 3000); // Increased for detailed reports
             requestBody.put("generationConfig", generationConfig);
 
-            // Make API call - Using Gemini 2.5 Flash
+                // Make API call
             String response = webClient.post()
-                    .uri("/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey)
+                    .uri("/v1beta/models/" + model + ":generateContent")
                     .header("Content-Type", "application/json")
+                    .header("x-goog-api-key", apiKey)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
@@ -156,9 +162,13 @@ public class GeminiAIService {
             // Parse response
             return parseGeminiResponse(response);
             
+        } catch (WebClientResponseException e) {
+            String details = e.getResponseBodyAsString();
+            throw new RuntimeException(
+                    "Gemini API request failed (HTTP " + e.getStatusCode().value() + "). " +
+                    (details == null || details.isBlank() ? "No response body." : details)
+            );
         } catch (Exception e) {
-            System.err.println("Gemini API Error: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Failed to generate AI summary: " + e.getMessage());
         }
     }
@@ -168,6 +178,9 @@ public class GeminiAIService {
      */
     private String parseGeminiResponse(String jsonResponse) {
         try {
+            if (jsonResponse == null || jsonResponse.isBlank()) {
+                return "Empty AI response.";
+            }
             
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode candidates = root.path("candidates");
@@ -203,7 +216,6 @@ public class GeminiAIService {
             return "Unable to parse AI response.";
         } catch (Exception e) {
             System.err.println("Error parsing Gemini response: " + e.getMessage());
-            e.printStackTrace();
             return "Error processing AI response.";
         }
     }

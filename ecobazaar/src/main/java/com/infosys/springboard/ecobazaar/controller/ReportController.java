@@ -95,6 +95,7 @@ public class ReportController {
             errorResponse.put("summary", "Unable to generate AI summary at this time. Please try again later.");
             errorResponse.put("status", "error");
             errorResponse.put("error", e.getMessage());
+            errorResponse.put("message", e.getMessage());
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
